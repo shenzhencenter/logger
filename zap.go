@@ -65,6 +65,10 @@ func With(fields ...zap.Field) *zap.Logger {
 	return i.With(fields...)
 }
 
+func I() *zap.Logger {
+	return i
+}
+
 func Sync() {
 	i.Sync()
 }
