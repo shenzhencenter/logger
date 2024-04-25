@@ -7,19 +7,21 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-var (
-	i    *zap.Logger
-	host zap.Field
-)
+var i *zap.Logger
 
 func init() {
-	host = zap.String("_host", os.Getenv("HOSTNAME"))
-	var config = zap.NewDevelopmentConfig()
-	if os.Getenv("ENV") == "production" {
+	var (
+		env    string     = os.Getenv("ENV")
+		host   string     = os.Getenv("HOSTNAME")
+		config zap.Config = zap.NewDevelopmentConfig()
+	)
+	if env == "production" || env == "prod" || env == "prd" {
 		config = zap.NewProductionConfig()
 	}
+	config.Encoding = "json"
 	config.EncoderConfig.EncodeTime = zapcore.RFC3339NanoTimeEncoder
 	config.EncoderConfig.EncodeDuration = zapcore.MillisDurationEncoder
+	config.InitialFields = map[string]interface{}{"_host": host}
 	i, _ = config.Build()
 }
 
@@ -32,35 +34,35 @@ func WithOptions(opts ...zap.Option) {
 }
 
 func Info(msg string, fields ...zap.Field) {
-	i.With(host).Info(msg, fields...)
+	i.Info(msg, fields...)
 }
 
 func Error(msg string, fields ...zap.Field) {
-	i.With(host).Error(msg, fields...)
+	i.Error(msg, fields...)
 }
 
 func Fatal(msg string, fields ...zap.Field) {
-	i.With(host).Fatal(msg, fields...)
+	i.Fatal(msg, fields...)
 }
 
 func Debug(msg string, fields ...zap.Field) {
-	i.With(host).Debug(msg, fields...)
+	i.Debug(msg, fields...)
 }
 
 func Warn(msg string, fields ...zap.Field) {
-	i.With(host).Warn(msg, fields...)
+	i.Warn(msg, fields...)
 }
 
 func DPanic(msg string, fields ...zap.Field) {
-	i.With(host).DPanic(msg, fields...)
+	i.DPanic(msg, fields...)
 }
 
 func Panic(msg string, fields ...zap.Field) {
-	i.With(host).Panic(msg, fields...)
+	i.Panic(msg, fields...)
 }
 
 func With(fields ...zap.Field) *zap.Logger {
-	return i.With(host).With(fields...)
+	return i.With(fields...)
 }
 
 func Sync() {
