@@ -11,18 +11,24 @@ var i *zap.Logger
 
 func init() {
 	var (
-		env    string     = os.Getenv("ENV")
 		host   string     = os.Getenv("HOSTNAME")
-		config zap.Config = zap.NewDevelopmentConfig()
+		level  string     = os.Getenv("LOG_LEVEL")
+		config zap.Config = zap.NewProductionConfig()
 	)
-	if env == "production" || env == "prod" || env == "prd" {
-		config = zap.NewProductionConfig()
+	if len(level) > 0 {
+		l, err := zap.ParseAtomicLevel(level)
+		if err != nil {
+			panic("invalid log level")
+		}
+		config.Level = l
 	}
 	config.Encoding = "json"
+	config.Development = false
+	config.Sampling = nil
 	config.EncoderConfig.EncodeTime = zapcore.RFC3339NanoTimeEncoder
 	config.EncoderConfig.EncodeDuration = zapcore.MillisDurationEncoder
 	config.InitialFields = map[string]interface{}{"_host": host}
-	i, _ = config.Build()
+	i, _ = config.Build(zap.WithCaller(true), zap.AddCallerSkip(1))
 }
 
 func WithHook(hook ...func(zapcore.Entry) error) {
